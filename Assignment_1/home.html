@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Selfieless Act</title>
+
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+
+	<style type="text/css">
+
+		* {
+			box-sizing: border-box;
+		  }
+
+		body{
+			margin : 2%;
+			background-color: cadetblue;
+			padding: 20px;
+			font-family: Arial;
+		}
+		h3{
+			font-size: 60px;
+            color:white;
+			word-break: break-all;
+		}
+
+		.row {
+			margin: 10px -16px;
+		}
+
+		/* Add padding BETWEEN each column */
+		
+		.row, .row > .column {
+			padding: 10px;
+		}
+
+		/* Create three equal columns that floats next to each other */
+		.column {
+			float: left;
+			width: 33.33%;
+			display: none; /* Hide all elements by default */
+		}
+
+		/* Clear floats after rows */ 
+		.row:after {
+			content: "";
+			display: table;
+			clear: both;
+		}
+
+		/* Content */
+		.content {
+			background-color: white;
+			padding: 10px;
+		}
+    
+		.modal-body{
+            border:2px solid white;
+			align-content: center !important;
+		}
+
+		/* Center website */
+		.main{
+			max-width: 1000px;
+			margin: auto;
+		}
+
+		/* The "show" class is added to the filtered elements */
+		.show {
+			display: block;
+		}
+
+		.btn{
+			border: none;
+			outline: none;
+			padding: 14px 18px;
+            font-size:16px;
+			background-color: white;
+			cursor: pointer;
+		}
+
+		.btn:hover{
+			background-color: #ddd;
+		}
+
+		.btn.active{
+			background-color: #666;
+			color: white;
+		}
+        .funcbut
+        {
+            background-color:cadetblue;
+            padding-left: 18px;
+            padding-right:18px;
+            padding-top:12px;
+            padding-bottom: 12px;
+            color: white;
+            font-size: 16px;
+            align-items: center;
+            border:3px solid white;
+            border-radius: 8px;
+        }
+        
+        #myModal
+        {
+            border:2px solid white;
+        }
+
+	</style>
+
+
+</head>
+<body>
+	<!-- MAIN (Center website) -->
+	<div class="main">
+
+		<h3> Your Selfieless Gallery </h3>
+		<hr>
+
+		<div id="myBtnContainer">
+			<button class="btn active" onclick="filterSelection('all')" id="showall"> Show all</button>
+			<button class="btn" onclick="filterSelection('household')"> Household</button>
+			<button class="btn" onclick="filterSelection('road')"> Road</button>
+			<button class="btn" onclick="filterSelection('school')"> School</button>
+
+			<button type="button" class="btn" data-toggle="modal" data-target="#myModal" style="float: right;" >Upload</button>
+
+		</div>
+	</div>
+
+
+	<!-- MODAL FOR UPLOADING -->
+	<div id="myModal" class="modal fade" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close funcbut" data-dismiss="modal">&times;</button>
+					<h2 class="modal-title" style="margin-left: 10px;">Upload Image Here</h2>
+				</div>
+				<div class="modal-body" style="margin-left: 10px;">
+					<input type="file" ><br>
+					Caption:  
+					<input type="textbox" name="caption" ><br><br>
+					Category :<br><br>
+					&nbsp;
+					<input type="radio" name="category" value="household"> Household<br><br>
+					&nbsp;
+					<input type="radio" name="category" value="road"> Road<br><br>
+					&nbsp;
+					<input type="radio" name="category" value="school"> School 
+
+					<br><br>
+				</div>
+				<div class="modal-footer">
+					<input type="submit" onclick="uploading()" class="btn funcbut" data-dismiss="modal">
+					
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- END OF MODAL -->
+
+
+	<div class="row" id="maindiv">
+	</div>
+
+  
+	
+<script type="text/javascript">
+	
+	var maindiv = document.getElementById("maindiv");
+
+	var c = 0;	
+
+	function uploading(){
+		//category
+		var cat = document.getElementsByName("category");
+		var selectedCat;
+		for(var i = 0; i < cat.length; i++) {
+			if(cat[i].checked)
+				selectedCat = cat[i].value;
+		}
+		//end of category
+
+		var caption = document.getElementsByName("caption")[0].value;		//caption over
+
+		var di_col = document.createElement("DIV");
+		di_col.className = "column";
+		di_col.className += " " + selectedCat;	//"column" + category
+
+		var di_cont = document.createElement("DIV");
+		di_cont.setAttribute("class", "content");
+
+		function previewFile(){
+			var preview = document.createElement("img");
+			preview.setAttribute("src", "");
+
+			var file    = document.querySelector('input[type=file]').files[0]; 
+			var reader  = new FileReader();
+
+			reader.onloadend = function () {
+				preview.src = reader.result;		
+			}
+			if (file) {
+				reader.readAsDataURL(file);
+			} 
+			else{
+				preview.src = "";
+			}
+			preview.setAttribute("id", c);
+			preview.style.width= "100%";
+			
+			di_cont.appendChild(preview);
+		}
+	
+		previewFile();
+
+		var para = document.createElement("p");
+        para.style.fontSize= "20px";
+		var node = document.createTextNode(caption);
+		para.appendChild(node);
+
+		var likebtn=document.createElement("INPUT");
+		likebtn.setAttribute("type","button");
+        likebtn.setAttribute("class", "funcbut");
+		likebtn.setAttribute("id","bt1"+c);
+		likebtn.setAttribute("value","Like");
+		likebtn.setAttribute("onclick","incvote(this.id)");
+
+		var delbtn = document.createElement("input");
+    	delbtn.setAttribute("type","button");
+        delbtn.setAttribute("class", "funcbut");
+		delbtn.setAttribute("id","c2"+c);
+		delbtn.setAttribute("onclick","delrep(this.id)");
+		delbtn.setAttribute("value","Delete");
+
+		var voteval = document.createElement("h4");
+		voteval.setAttribute("id", "c4"+c);
+		voteval.textContent = "0";
+
+		// maindiv.appendChild(di_col);
+
+		var firstChild = maindiv.firstChild;
+		if(firstChild.name == "undefined")
+			maindiv.appendChild(di_col);
+		else
+			maindiv.insertBefore(di_col, firstChild);
+
+		di_col.appendChild(di_cont);
+		// di_cont.appendChild(im);
+		di_cont.appendChild(para);
+        di_cont.appendChild(likebtn);
+		di_cont.appendChild(delbtn);
+		di_cont.appendChild(voteval) 
+
+		document.body.appendChild(maindiv);
+		c++;	
+
+		filterSelection("all");
+	}
+
+	function incvote(id4){
+		var but = document.getElementById(id4);
+		var comm = but.parentNode;
+		var upvote = comm.childNodes[4];
+		var num = parseInt(upvote.textContent);
+		num = num+1;
+		upvote.textContent = num.toString();
+	}
+
+	function delrep(id4){
+		var but = document.getElementById(id4);
+		var comm = but.parentNode;
+		var okay = comm.parentNode;
+		var stat = okay.parentNode;
+		stat.removeChild(okay);
+	}
+
+	// var count=0;
+	// function like(id3){
+	// var lik = document.getElementById(id3);
+	// 	var post = lik.parentNode;
+	// 	var stat= post.firstChild;
+	// 	var lab = stat.nextSibling;
+	// 	count+=1;
+	// 	//alert(count);
+	// 	lab.value= count+" Likes"; 
+	// }
+
+	filterSelection("all"); 
+	function filterSelection(c) {
+		var x, i;
+		x = document.getElementsByClassName("column");
+		if (c == "all") c = "";
+		for (i = 0; i < x.length; i++) {
+			w3RemoveClass(x[i], "show");
+			if (x[i].className.indexOf(c) > -1) w3AddClass(x[i], "show");
+		}	
+	}
+ 
+	function w3AddClass(element, name) {
+		var i, arr1, arr2;
+		arr1 = element.className.split(" ");
+		arr2 = name.split(" ");
+		for (i = 0; i < arr2.length; i++) {
+			if (arr1.indexOf(arr2[i]) == -1) {element.className += " " + arr2[i];}
+		}
+	}
+
+	function w3RemoveClass(element, name) {
+		var i, arr1, arr2;
+		arr1 = element.className.split(" ");
+		arr2 = name.split(" ");
+		for (i = 0; i < arr2.length; i++) {
+			while (arr1.indexOf(arr2[i]) > -1) {
+				arr1.splice(arr1.indexOf(arr2[i]), 1);     
+			}
+		}
+		element.className = arr1.join(" ");
+	}
+
+
+	// Add active class to the current button (highlight it)
+	var btnContainer = document.getElementById("myBtnContainer");
+	var btns = btnContainer.getElementsByClassName("btn");
+	for (var i = 0; i < btns.length; i++) {
+		btns[i].addEventListener("click", function(){
+			var current = document.getElementsByClassName("active");
+			current[0].className = current[0].className.replace(" active", "");
+			this.className += " active";
+		});
+	}
+
+
+</script>
+
+</body>
+</html>
