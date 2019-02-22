@@ -1,43 +1,19 @@
 <html>
 	<head>
 		<title> Acts for {{ category_name }}</title>
-		<script>
-			// Act given to the function in JSON
-			function showAct(){
-				// Act format to be done here
-				var para = document.createElement("p");
-    		    para.style.fontSize= "20px";
-				var node = document.createTextNode(caption);
-				para.appendChild(node);
-
-				var likebtn=document.createElement("INPUT");
-				likebtn.setAttribute("type","button");
-		        likebtn.setAttribute("class", "funcbut");
-				likebtn.setAttribute("id","bt1"+c);
-				likebtn.setAttribute("value","Like");
-				likebtn.setAttribute("onclick","incvote(this.id)");
-
-				var delbtn = document.createElement("input");
-		    	delbtn.setAttribute("type","button");
-		        delbtn.setAttribute("class", "funcbut");
-				delbtn.setAttribute("id","c2"+c);
-				delbtn.setAttribute("onclick","delrep(this.id)");
-				delbtn.setAttribute("value","Delete");
-
-				var voteval = document.createElement("h4");
-				voteval.setAttribute("id", "c4"+c);
-				voteval.textContent = act.upvote;
-			}
-		</script>
 	</head>
 	<body>
 		<div class = "main">
 			{% for act in acts %}
 			<div class = "act">
-				<p>{{ caption }}</p>
-				<input type = "button" class = "funcbut" id = "bt1{{ act['actId'] }}" value = "like" onclick="incvote(this.id)">
-				<input type = "button" class = "funcbut" id = "bt2{{ act['actId'] }}" value = "Delete" onclick="delrep(this.id)">
-				<h4>{{ vote }}</h4>
+				<p>{{ act['caption'] }}</p>
+				<form action = "{{url_for('upvote_front')}}" method = "post">
+					<button type = "submit" class = "funcbut" value = "{{ act['actID'] }}">Upvote</button>
+				</form>
+				<form action = "{{url_for('delete_front')}}" method = "post">
+					<button type = "submit" class = "funcbut" value = "{{ act['actID'] }}">Delete</button>
+				</form>
+				<h4>{{ act['upvotes'] }}</h4>
 			</div>
 			{% endfor %}
 		</div>
