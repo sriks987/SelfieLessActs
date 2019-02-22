@@ -1,0 +1,118 @@
+<html>
+	<head>
+		<title> Welcome to selfieLess acts</title>
+		<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+
+	<style type="text/css">
+
+		* {
+			box-sizing: border-box;
+		  }
+
+		body{
+			margin : 2%;
+			background-color: cadetblue;
+			padding: 20px;
+			font-family: Arial;
+		}
+		h3{
+			font-size: 60px;
+            color:white;
+			word-break: break-all;
+		}
+
+		.row {
+			margin: 10px -16px;
+		}
+
+		/* Add padding BETWEEN each column */
+		
+		.row, .row > .column {
+			padding: 10px;
+		}
+
+		/* Create three equal columns that floats next to each other */
+		.column {
+			float: left;
+			width: 33.33%;
+			display: none; /* Hide all elements by default */
+		}
+
+		/* Clear floats after rows */ 
+		.row:after {
+			content: "";
+			display: table;
+			clear: both;
+		}
+
+		/* Content */
+		.content {
+			background-color: white;
+			padding: 10px;
+		}
+    
+		.modal-body{
+            border:2px solid white;
+			align-content: center !important;
+		}
+
+		/* Center website */
+		.main{
+			max-width: 1000px;
+			margin: auto;
+		}
+
+		/* The "show" class is added to the filtered elements */
+		.show {
+			display: block;
+		}
+
+		.btn{
+			border: none;
+			outline: none;
+			padding: 14px 18px;
+            font-size:16px;
+			background-color: white;
+			cursor: pointer;
+		}
+
+		.btn:hover{
+			background-color: #ddd;
+		}
+
+		.btn.active{
+			background-color: #666;
+			color: white;
+		}
+        .funcbut
+        {
+            background-color:cadetblue;
+            padding-left: 18px;
+            padding-right:18px;
+            padding-top:12px;
+            padding-bottom: 12px;
+            color: white;
+            font-size: 16px;
+            align-items: center;
+            border:3px solid white;
+            border-radius: 8px;
+        }
+        
+        #myModal
+        {
+            border:2px solid white;
+        }
+
+	</style>
+	</head>
+	<body>
+		<!-- login, username and logout button here-->
+		<div class = "main">
+			<h3>Your SelfieLess Gallery</h3>
+			<!-- Buttons for upload and seeing categories with center alignment -->
+
