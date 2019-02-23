@@ -1,4 +1,6 @@
+from operator import itemgetter
 from pymongo import MongoClient
+import re
 import json
 import base64
 import string
@@ -6,32 +8,50 @@ import binascii
 import datetime
 import hashlib
 from flask import Flask, request, Response, abort, render_template
+
 app = Flask(__name__)
 
 client = MongoClient()
 db = client['selfie_db']
 
-#base64 string checking
-def validateandFormatTimeFormat(timestamp):
+#Helper Functions
+
+def ValidateAndFormatTimeFormat(timestamp):
 	try:
 		dob= datetime.datetime.strptime(timestamp, '%d-%m-%Y:%S-%M-%H')
 	except ValueError:
-		# print("Incorrect Date Format. Required- YYYY-MM-DD:SS-MM-HH")
 		return 0
-	# print("datob:", dob)
 	return 1
 
-def validateImageFormat(ImageStr):
-	try:
-		print(ImageStr.encode('ascii'))
-		imageB64= base64.decodestring(ImageStr.encode('ascii'))
+def is_base64(string):
+	b64pattern = re.compile('^[A-Za-z0-9+\/=]+\Z')
+	if len(string) % 4 == 0 and re.search(b64pattern, string)!=None:
 		return 1
-	except binascii.Error:
+	else:
 		return 0
+		
 
 def validatePassword(password):
 	return all(c in string.hexdigits for c in password) and (len(password)==40)
-# Helper functions
+
+def adduser(username, password):
+	if (validatePassword(password)==True):
+		res = db.users.find_one({'name': username})
+		if res==None:	
+			db.users.insert({"name": username, "password": password})
+			return 1
+		else:
+			return 0
+	else:
+		return 0
+
+def removeuser(username):
+	res = db.users.find_one({'name': username})
+	if res != None:
+		db.users.delete_one({'name' : username})
+
+		return 1
+	return 0
 
 def getCat():
         cursor = db.categories.find()
@@ -54,84 +74,215 @@ def delCat(catName):
                 return 1
         return 0
 
+def getAct(category):
+	res = db.acts.find( { 'categoryName': category}, {'_id':0, 'categoryName': 0 } ).count()
+	if (res == 0):
+		return 0
+	elif (res > 100):
+		return 1
+	else:
+		res = db.acts.find({'categoryName':category}, {'_id':0, 'categoryName':0})
+		finalVal = []
+		for doc in res:
+			finalVal.append(doc)
+		# #print(finalVal)
+		finalVal = sorted(finalVal, key=itemgetter('timestamp'), reverse=True)
+		return finalVal
+
+def getinAct(category, start, end):
+	res = db.acts.find( { 'categoryName': category}, {'_id':0, 'categoryName': 0 } ).count()
+	if (res == 0):
+		return 0
+	elif (start < 1):
+		return 1
+	elif (end > res):
+		return 2
+	elif (end+start-1 > 100):
+		return 3
+	elif (start > end):
+		return 4
+	elif (start == 1 and end == 1):
+		res = db.acts.find({'categoryName':category}, {'_id':0, 'categoryName':0})
+		finalValue = []
+		for doc in res:
+			finalValue.append(doc)
+		return finalValue
+	else:
+		res = db.acts.find({'categoryName':category}, {'_id':0, 'categoryName':0})
+		finalValue = []
+		finalreturn = []
+		for doc in res:
+			finalValue.append(doc)
+		finalValue = sorted(finalValue, key=itemgetter('timestamp'), reverse=True)
+		# #print(finalValue)
+		for i in range(start, end):
+			finalreturn.append(finalValue[i])
+
+		return finalreturn
+
+
+def length(category):
+	res = db.acts.find({'categoryName':category}).count()
+	return res
+
+
+
 def uploadAct(actData):
-		#actId = json_data['actId']
-		existing_id = db.acts.find({'actId': actId}) 
-		# print(existing_id)
+	actId = actData['actId']
+	# if actId.isdigit() == False:
+		# return 0
+	if int(actId) != actId or actId < 0:
+		#print("error here")
+		return 0
+
+	existing_id = db.acts.find_one({'actId': actId}) 
+	if existing_id == None:
+		username = actData['username']
+		existing_username = db.users.find_one({'name' : username})
+		if existing_username == None:
+			#print("heree")
+			return 0
+	
+		timestamp = actData['timestamp']
+		validatResult= ValidateAndFormatTimeFormat(timestamp)
+		if validatResult == 0:
+			#print("validate")
+			return 0
 		
-		#actId should not be in db
-		#int actId
-		#timestamp
-		#username exist
-		#upvotes 0
-		#categoryname must exist
-		#base64
-		# #category count increment
+		caption = actData['caption']
 
-		# if existing_id == None:
-		# 	# print("ID is not present")
-		# 	validatResult= ValidateAndFormatTimeFormat(json_data['timestamp'])
-		# 	if validatResult == 0:
-		# 		return 0
-
-		# 	# printf("Valid Time")
-		# 	existing_cat= db.acts.find({'actId': actData[5]})
-		# 	print(existing_cat)
-		# 	if(existing_cat):
-		# 		newAct= Acts(act, json_data['username']),
-		# 		validatResult,json_data['caption'],json_data['imgB64'],0,json_data['categoryName']
-		# 		db.session.add(newAct)
-		# 		existing_cat.numberofacts+=1
-		# 		db.session.commit()
-		# 		return 1
+		categoryName = actData['categoryName']
+		existing_cat = db.categories.find_one({'name': categoryName})
+		if existing_cat == None:
+			#print("categoryname")
+			return 0
 
 
+		imgB64 = actData['imgB64']
+		if is_base64(imgB64) == 0:
+			#print("base64")
+			return 0
 
-		# 	else:
-		# 		return 0
-		# 	else:
-		# 		return 0
-		# 	else:
-			# return 0
+		db.acts.insert({'actId' : actId, 'username' : username , 'timestamp' : timestamp , 'caption' : caption, 'categoryName': categoryName , 'upvote' : 0, 'imgB64' : imgB64})
+		db.categories.update({'name':categoryName}, {'$inc': {'count': 1}})
 
+		return 1
+	#print("otherwsie")
+	return 0
 
 
 def deleteAct(actId):
-		res = db.acts.find({'actId': actId})
-		if res!=None:
-			db.acts.remove({'actId': actId})
-			return 1
-		return 0
-
-def check(category):
-	res = category in db.list_collection_names()
-	if (res == True):
-	#	print("entering this.")
-		acts = []
-		for category1 in db[category].find():
-			#print("entering this.")
-			#print(category1)
-			acts.append(category1)
-	return acts
-
-def adduser(username, password):
-	if (validatePassword(password)==True):
-		res = db.users.find_one({'name': username})
-		if res==None:	
-			db.users.insert({"name": username, "password": password})
-			return 1
-		else:
-			return 0
-	else:
-		return 0
-
-def removeuser(username):
-	res = db.users.find_one({'name': username})
+	res = db.acts.find_one({'actId': actId})
+	# #print(res)
 	if res != None:
-		db.users.delete_one({'name' : username})
+		category = res['categoryName'] 
+		db.acts.remove({'actId': actId})
+		db.categories.update({'name':category}, {'$inc': {'count': -1}})
 		return 1
-	return 0
+	return 
 
+def upvoteAct(actId):
+	existing_act  = db.acts.find_one({'actId': actId})
+	if existing_act == None:
+		return 0
+	db.acts.update({'actId':actId}, {'$inc': {'upvote': 1}})
+	return 1
+
+def getPassword(username):
+	res = db.users.find_one({'name': username})
+	if res==None:
+		return None
+	else:
+		return res['password']
+
+@app.route('/api/v1/valLogin', methods = ["POST"])
+def valLogin():
+	if request.method == "POST":
+		username = request.json["username"]
+		password = request.json["password"]
+		realPass = getPassword(username)
+		if realPass is not None:
+			if password == realPass:
+				return json.dumps({}), 201
+			else:
+				return json.dumps({}), 400
+		else:
+			return json.dumps({}), 400
+	else:
+		return json.dumps({}), 405
+
+@app.route('/api/v1/getNum', methods = ["GET"])
+def getNum():
+	actNum = db.acts.count()
+	return json.dumps({'actID': actNum + 1}),200
+
+
+
+@app.route('/api/v1/users', methods = ["POST", "GET", "DELETE", "PUT"])
+def addUser():
+	if request.method == "POST":
+		if request.json==None:
+			username = request.form.get("username")
+			password = request.form.get("password")
+		else:
+			username_password = request.get_json(force=True)
+			newset = []
+			for key in username_password:
+				newset.append(key)
+			# #print(newset[0] + " " + newset[1])
+			if (newset[0] != "username" or newset[1] != "password"):
+				# #print("here")
+				return json.dumps({}), 400
+			else:	
+				# #print("otherwise")
+				username = request.json["username"]
+				password = request.json["password"]
+				status = adduser(username, password)
+				if (status == 1):
+					return json.dumps({}), 201
+				else:
+					return json.dumps({}), 400
+	else:
+		return json.dumps({}), 405
+
+@app.route('/api/v1/users/<username>', methods = ["GET", "DELETE", "POST", "PUT"])
+def removeUser(username):
+	if request.method == 'DELETE':
+		if (removeuser(username) == 1):
+			return json.dumps({}), 200
+		else:
+			return json.dumps({}), 400
+	else:
+		return json.dumps({}), 405
+
+@app.route('/api/v1/categories/<categoryname>/acts', methods = ["GET", "PUT", "POST", "DELETE"])
+def listallacts(categoryname):
+	if (request.args.get('start') is None and request.args.get('end') is None):
+		if request.method == "GET":
+			#print("all")
+			actsGet = getAct(categoryname)
+			if actsGet == 0:
+				return json.dumps({}),204
+			elif actsGet == 1:
+				return json.dumps({}), 413
+			else:
+				return json.dumps(actsGet), 200
+		else:
+			return json.dumps({}), 405
+	elif (len(request.args.get('start')) > 0 and len(request.args.get('end'))):
+		if request.method == 'GET':
+			startRange=request.args.get('start',type=int)
+			endRange=request.args.get('end',type=int)
+			#print("Coming from Listing in Range")
+			result = getinAct(categoryname, startRange, endRange)
+			if (result == 0) or (result == 1):
+				return json.dumps({}), 204
+			elif (result == 2) or (result == 3) or (result == 4):
+				return json.dumps({}), 204
+			else:
+				return json.dumps(result), 200
+		else:
+			return json.dumps({}), 405
 
 @app.route('/api/v1/categories', methods = ['POST', 'GET', 'DELETE', 'PUT'])
 def listCat():
@@ -161,121 +312,62 @@ def removeCategory(category_name):
 	else:
 		return json.dumps({}), 405
 
-# # Relevant HTTP Response Codes: 201, 400, 405
-# @app.route('/api/v1/acts', methods = ['POST', 'GET', 'DELETE', 'PUT'])
-# def upload_ACT():
-# 	if request.method == 'POST':
-# 		actData = request.get_json(force=True)
-# 		if(uploadAct(actData) == 1):
-# 			return json.dumps({}), 201
-# 		else:
-# 			return json.dumps({}), 400
-# 	else:
-# 		return json.dumps({}), 405
-
-# @app.route('/api/v1/acts/<actId>', methods = ['POST', 'GET', 'DELETE', 'PUT'])
-# def delete_ACT(actId):
-# 	if request.method == 'DELETE':
-# 		if(deleteAct(actId) == 1):
-# 			return json.dumps({}), 200
-# 		else:
-# 			return json.dumps({}), 400
-# 	else:
-# 		return json.dumps({}), 405
-
-
-@app.route('/api/v1/users', methods = ["POST", "GET"])
-def addUser():
-	# if request.method == "GET":
-	# 	return render_template("register.html")
-	if request.method == "POST":
-		if request.json==None:
-			username = request.form.get("username")
-			password = request.form.get("password")
+@app.route('/api/v1/categories/<categoryname>/acts/size', methods = ["POST", "PUT", "GET", "DELETE"])
+def listnumberofacts(categoryname):
+	if request.method == "GET":
+		count = length(categoryname)
+		if (count > 0):
+			return json.dumps(count), 200
 		else:
-			username = request.json["username"]
-			password = request.json["password"]
-		status = adduser(username, password)
-		if (status == 1):
-			#user created
-			# msg = "New User Created. Enjoy!"
+			return json.dumps({}), 204
+	else:
+		return json.dumps({}), 405
+
+@app.route('/api/v1/acts', methods = ['POST', 'GET', 'DELETE', 'PUT'])
+def upload_ACT():
+	if request.method == 'POST':
+		actData = request.get_json(force=True)
+		checking = []
+		for key in actData:
+			checking.append(key)
+		# #print(checking)
+		if (checking[0] != 'actId' or checking[1] != 'username' or checking[2] != 'timestamp' or checking[3] != 'caption' or checking[4] != 'categoryName' or checking[5] != 'imgB64'):
+			#print(checking)
+			return json.dumps({}), 400
+		elif(uploadAct(actData) == 1):
 			return json.dumps({}), 201
 		else:
-			#user exists.
-			# msg = "Please login. Your account exists."
+			#print("here")
 			return json.dumps({}), 400
 	else:
 		return json.dumps({}), 405
 
-@app.route('/api/v1/users/<username>', methods = ["GET", "DELETE"])
-def removeUser(username):
+
+@app.route('/api/v1/acts/<actId>', methods = ['POST', 'GET', 'DELETE', 'PUT'])
+def delete_ACT(actId):
+	actId = int(actId)
 	if request.method == 'DELETE':
-		if (removeuser(username) == 1):
+		if(deleteAct(actId) == 1):
 			return json.dumps({}), 200
 		else:
 			return json.dumps({}), 400
 	else:
 		return json.dumps({}), 405
 
-# @app.route('/api/v1/categories/<categoryName>/acts', methods = ["GET", "DELETE", "POST", "PUT"])
-# def listAllActs_category(categoryName):
-# 	if request.method == "GET":
-# 		res = check(categoryName)
-# 		# msg = str(res)
-# 		return json.dumps(res), 200
-# 	else:
-# 		return json.dumps({}), 405
-
-
-# @app.route('/api/v1/categories/<name>/acts/size', methods = ["GET"])
-# def listnumberofacts(name):
-# 	from flask import jsonify
-# 	if(request.method== GET):
-# 		with open('categories.json') as json_file:
-# 			data = json.load(json_file)
-# 			return jsonify(data[name])
-
-# @app.route('/api/v1/categories/<name>/acts?start=<startrange>&end=<endrange>',methods = ["GET"])
-# def returnnumberofacts(name,startrange,endrange):
-# 	from flask import jsonify
-# 	if(request.method== "GET"):
-# 		with open('categories.json') as json_file:
-# 			data= json.load(json_file)
-# 			if not data:
-# 				return Response(status=204)
-# 			if endrange-startrange>100:
-# 				return Response(status=413)
-# 			if data['Numberofacts']==0:
-# 				return Response(Status=204)
-# 			#get actslist from database
-
-# 			if(len(acts_list)<startrange or len(actslist)>endrange):
-# 				pass
-# 			else:
-# 				return jsonify(acts_list[startrange+1:endrange+2]) 
-
-# @app.route('/api/v1/acts/upvote',methods = ["POST"])
-# def upvote():
-# 	json_data= request.get_json(force=True)
-# 	if not json_data:
-# 		print("Bad Request")
-# 		return Response(status=400)
-# 	else:
-# 		act_id= json_data[0]
-# 		req_act= Acts.query.filter_by(actID=act_id).first()
-# 		if(not req_act):
-# 			abort(400)
-# 		print(req_act.numvotes)
-# 		req_act.numvotes+=1
-# 		#commit to database now. 
-# 	return Response(status=200)
+@app.route('/api/v1/acts/upvote',methods = ["POST", "PUT", "DELETE", "GET"])
+def upvote():
+	if request.method == "POST":
+		upvoteID = request.get_json(force=True)
+		print(upvoteID)
+		if(upvoteAct(int(upvoteID[0]))==1):
+			return json.dumps({}), 200
+		else:
+			return json.dumps({}), 400
+	else:
+		return json.dumps({}), 405
 
 
 if __name__ == '__main__':
 	app.debug == True
-	app.run(host = '127.0.0.1', port = 5000)
+	app.run(host='0.0.0.0', port=5000, debug = True)
 
-
-# 201 The request has been fulfilled and has resulted in one or more new resources being created.
-# 400 Bad request error
-# 405 Method not allowed

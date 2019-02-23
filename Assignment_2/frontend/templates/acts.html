@@ -6,13 +6,17 @@
 		<div class = "main">
 			{% for act in acts %}
 			<div class = "act">
+				<img src = "data:image/png;base64, {{act['image']}}">
+				<br><br>
 				<p>{{ act['caption'] }}</p>
-				<form action = "{{url_for('upvote_front')}}" method = "post">
-					<button type = "submit" class = "funcbut" value = "{{ act['actID'] }}">Upvote</button>
+				<br>
+				<form action = "{{url_for('upvoteActFront')}}" method = "post">
+					<button type = "submit" class = "funcbut" name = "submit" value = "{{ act['actId'] }}">Upvote</button>
 				</form>
-				<form action = "{{url_for('delete_front')}}" method = "post">
-					<button type = "submit" class = "funcbut" value = "{{ act['actID'] }}">Delete</button>
+				<form action = "{{url_for('deleteActFront')}}" method = "post">
+					<button type = "submit" class = "funcbut" name = "submit" value = "{{ act['actId'] }}">Delete</button>
 				</form>
+				<br>
 				<h4>{{ act['upvotes'] }}</h4>
 			</div>
 			{% endfor %}
