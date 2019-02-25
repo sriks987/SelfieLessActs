@@ -4,5 +4,16 @@
 	</head>
 	<body>
 		<!-- Display all the categories. Format can be identical to that of acts-->
+		<div class = "main">
+			{% for cat in categories.items() %}
+			<div>
+				<form action = "{{ url_for('catActs') }}" method = "post"> 
+					<input type = "submit" class = "funcbut" name = "category_name" value = "{{ cat[0] }}" />
+					<br><br>
+					<h4>{{ cat[1] }}</h4>
+				</form>
+			</div>
+			{% endfor %}
+		</div>
 	</body>
 </html>

@@ -1,10 +1,13 @@
 <html>
    <body>
-  	<form id="msform" action="/api/v1/users" method="POST">
+  	<form id="msform" action="{{ url_for('addUserFront') }}"" method="post">
     <h1>Create Account</h1>
     	<input type="text" name="username" placeholder="Username" / required>
-      	<input type="password" name="password" placeholder="Password" />
+      	<input type="password" name="password" placeholder="Password" / required>
       	<input type="submit" name="next" class="next action-button" value="Signup" / required>
+      	{% if error == True %}
+        <h3> Error in Username or password </h3>
+        {% endif %}
   </form>
 </body>
 
