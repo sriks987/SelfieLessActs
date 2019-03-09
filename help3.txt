@@ -1,0 +1,29 @@
+1. Ubuntu 16.04 instance.
+
+2. Add SSH & HTTP security groups.
+
+3. Install Docker - 
+	- sudo apt-get update
+	- sudo apt-get install \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    gnupg-agent \
+    software-properties-common
+    - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+    - sudo apt-key fingerprint 0EBFCD88
+    - sudo add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) \
+   stable"
+   - sudo apt-get update
+   - sudo apt-get install docker-ce docker-ce-cli containerd.io
+   
+   Verify installation - sudo docker run hello-world
+
+4. Dockers - 
+
+- To remove all dockers - docker system prune -a
+- To build docker image - docker build --tag=users . #tag can be anything you want
+- To list images you have running - docker image ls
+- To run docker image - docker run -p 4000:8080 users
