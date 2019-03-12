@@ -99,7 +99,7 @@
    ```
    * To connect to MongoDB container, you need to know the IP of the container. Get the IP using - 
    ```console
-      docker run -d --name mongo -p 27017:27017 mvertes/alpine-mongo
+      docker network inspect bridge
    ```
    * Use the IPv4 address (without subnet) and substitute that in your app.py code - 
    ```code
