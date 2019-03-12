@@ -88,6 +88,19 @@
    cd users
 ```
 - In this directory, download the Dockerfile and app.py file for *users*. On ls, you must be able to see two files - Dockerfile & app.py
+
+- Create a folder called "acts" in /home/ubuntu
+```console
+   mkdir acts
+```
+
+- Enter the directory -
+```console
+   cd acts
+```
+
+- In this directory, download the Dockerfile and app.py file for *acts*. On ls, you must be able to see two files - Dockerfile & app.py
+
 - MongoDB - 
    * Pull the MongoDB alpine image using - 
    ```console
@@ -111,7 +124,20 @@
 ```
 - Run the image - 
 ```console 
-   docker run -p 8080:8080 users
+   docker run -d --name users -p 8080:8080 users
 ```
-- Open Postman and give the following address - *IPofInstance:8080/api/v1/users* to begin working.
+
+- Build the Image for acts - 
+```console
+   docker build --tag=acts .
+```
+- Run the image - 
+```console
+   docker run -p 8000:8000 acts
+```
+
+## Postman
+
+- For users - IP:8080/apicalls
+- For acts - IP:8000/apicalls
    
