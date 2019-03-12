@@ -141,3 +141,15 @@
 - For users - IP:8080/apicalls
 - For acts - IP:8000/apicalls
    
+## Communication between User and Act Containers 
+
+- All containers are present within the same network.
+- It is easy to communicate if IPs of the containers are known.
+- The following command helps to get to know the IPs of the containers.
+```console
+   docker network inspect bridge
+```
+- This can be used in acts/app.py to communicate with users container
+```code
+   newIP = "http://IP:port"
+```
