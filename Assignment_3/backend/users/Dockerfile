@@ -11,5 +11,6 @@ RUN apk add --update \
 	&& pip3 install Flask
 
 EXPOSE 8080
+ENV TEAM_ID="CC_251_277_302_396"
 
 CMD ["python3", "app.py"]
