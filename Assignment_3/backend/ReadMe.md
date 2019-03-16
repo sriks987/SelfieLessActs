@@ -143,13 +143,30 @@
    
 ## Communication between User and Act Containers 
 
-- All containers are present within the same network.
-- It is easy to communicate if IPs of the containers are known.
-- The following command helps to get to know the IPs of the containers.
-```console
-   docker network inspect bridge
-```
-- This can be used in acts/app.py to communicate with users container
+- Use the instance IP present in the acts->app.py
 ```code
-   newIP = "http://IP:port"
+newIP = "http://<instanceIP>:8080"
+```
+
+## Pushing Image to DockerHub
+
+- Login to DockerHub on your terminal
+```console
+docker login
+```
+- Enter your username & password
+- Build your images from users and acts directory respectively: 
+```console
+docker build --tag=users .
+docker build --tag= acts .
+```
+- Tag the images - 
+```console
+docker tag user <dockerHubId>/<repositoryName1>
+docker tag acts <dockerHubId>/<repositoryName2>
+```
+- Push the images - 
+```console
+docker push <dockerHubId>/<repositoryName1>
+docker push <dockerHubId>/<repositoryName2>
 ```
