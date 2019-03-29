@@ -13,6 +13,6 @@ RUN apk add --update \
 
 ENV TEAM_ID="CC_251_277_302_396"
 
-EXPOSE 8000
+EXPOSE 80
 
 CMD ["python3", "app.py"]
