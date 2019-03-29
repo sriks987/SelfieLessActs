@@ -343,12 +343,12 @@ def upvote():
 @app.route('/api/v1/_count', methods = ['GET', 'DELETE', 'POST', 'PUT'])
 def countAPI():
 	# To return the number of request made
-	incrementRequests()
+	#incrementRequests()
 	if request.method == 'GET':
 		res = db.actRequests.find_one({}, {'requests': 1})
 		return json.dumps([res]),  200
 	elif request.method == 'DELETE':
-		resetRequests
+		resetRequests()
 		return json.dumps({}), 200
 	else:
 		return json.dumps({}), 405
@@ -364,4 +364,4 @@ def count():
 
 if __name__ == '__main__':
 	app.debug == True
-	app.run(host='0.0.0.0', port=8000, debug = True)
+	app.run(host='0.0.0.0', port=80, debug = True)
