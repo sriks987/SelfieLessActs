@@ -25,6 +25,7 @@ def fun():
         res = requests.get('http://localhost:8001/api/v1/categories')
         return str(res.json())
 
+
 if __name__ == '__main__':
         app.run(host='0.0.0.0', port=80)
 
