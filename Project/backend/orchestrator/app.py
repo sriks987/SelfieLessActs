@@ -14,15 +14,9 @@ from werkzeug.routing import Map, Rule, NotFound, RequestRedirect
 from flask import Flask, request, Response, abort, render_template
 
 app = Flask(__name__)
-
-client = MongoClient("172.17.0.2", 27017)
-newIP = "http://172.17.0.3:8080"
-db = client['selfie_db']
-
-portLists = []
+portLists = [8000]
 index = 0
 
-db.actRequests.insert({'requests': 0})
 
 @app.route("/api/v1/<path:remaining>", methods=["GET", "POST", "PUT", "DELETE"])
 def balance(remaining):
@@ -42,6 +36,36 @@ def balance(remaining):
 	app.logger.warning(portLists[index])
 	index = (index + 1)%(len(portLists))
 	return var
+
+def scaling():
+        while True:
+                var = requests.get("http://localhost:8000/api/v1/_count").json()
+                if var[0]/20 == len(portLists):
+                        continue
+                else:
+                        diff = var[0]//20 - len(portLists)
+                        if diff > 0:
+                                for i in range(0, diff):
+                                        port = portLists[-1]+1
+                                        portLists.append(port)
+                                        os.execute('docker run -d -p '+ str(port) + ':80 acts')
+                        else:
+                                for i in range(0, math.abs(diff)):
+                                        port = portLists.pop()
+                                        os.execute('docker rm $(docker ps -a | grep "'+str(port)+'>80/tcp" --force')
+                sleep(40)
+
+def monitorHealth():
+    while True:
+        for i in range(len(portList)):
+                portNumber = portList[i]
+                res = requests.get(url = 'http://localhost:' + str(portNumber) + '/api/v1/_health')
+                if res.status_code == 500:
+                        os.execute('docker rm $(docker ps -a | grep "'+str(portNumber)+'>80/tcp" --force')
+                        os.execute('docker run -d -p ' + str(portNumber) + ':80 acts')
+        sleep(1)
+
+
 
 
 if __name__ == '__main__':
