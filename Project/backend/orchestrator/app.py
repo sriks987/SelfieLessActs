@@ -19,89 +19,29 @@ client = MongoClient("172.17.0.2", 27017)
 newIP = "http://172.17.0.3:8080"
 db = client['selfie_db']
 
+portLists = []
+index = 0
+
 db.actRequests.insert({'requests': 0})
 
-healthyContainers = []
-unhealthyContainers = []
-
-def incrementRequests():
-	db.actRequests.update( {} , {'$inc': {'requests': 1}})
-	return 1
-
-def resetRequests():
-	db.actRequests.update({} , {'requests': 0})
-	return 1
-'''
-@app.route('/api/v1/categories/<categoryname>/acts', methods = ["GET", "PUT", "POST", "DELETE"])
-def listallacts(categoryname):
-	incrementRequests()
-	
-
-@app.route('/api/v1/categories', methods = ['POST', 'GET', 'DELETE', 'PUT'])
-def listCat():
-	incrementRequests()
-	
-
-@app.route('/api/v1/categories/<category_name>', methods = ['POST', 'GET', 'DELETE', 'PUT'])
-def removeCategory(category_name):
-	incrementRequests()
-	
-@app.route('/api/v1/categories/<categoryname>/acts/size', methods = ["POST", "PUT", "GET", "DELETE"])
-def listnumberofacts(categoryname):
-	incrementRequests()
-	
-@app.route('/api/v1/acts', methods = ['POST', 'GET', 'DELETE', 'PUT'])
-def upload_ACT():
-	incrementRequests()
-	
-@app.route('/api/v1/acts/<actId>', methods = ['POST', 'GET', 'DELETE', 'PUT'])
-def delete_ACT(actId):
-	incrementRequests()
-	
-@app.route('/api/v1/acts/upvote',methods = ['POST', 'PUT', 'DELETE', 'GET'])
-def upvote():
-	incrementRequests()
-	
-@app.route('/api/v1/_count', methods = ['GET', 'DELETE', 'POST', 'PUT'])
-def countAPI():
-	# To return the number of request made
-	#incrementRequests()
+@app.route("/api/v1/<path:remaining>", methods=["GET", "POST", "PUT", "DELETE"])
+def balance(remaining):
+	global index
+	app.logger.warning(remaining)
 	if request.method == 'GET':
-		res = db.actRequests.find_one({}, {'requests': 1})
-		return json.dumps([res]),  200
+		var = str(requests.get(url = 'http://127.0.0.1:' + str(portLists[index]) + '/api/v1/' + remaining).json())
+	elif request.method == 'POST':
+		jsonPart = request.get_json()
+		var = str(requests.post(url = 'http://127.0.0.1:' + str(portLists[index]) + '/api/v1/' + remaining, json = jsonPart).json())
+	elif request.method == 'PUT':
+		jsonPart = request.get_json()
+		var = str(requests.put(url = 'http://127.0.0.1:' + str(portLists[index]) + '/api/v1/' + remaining, json = jsonPart).json())
 	elif request.method == 'DELETE':
-		resetRequests()
-		return json.dumps({}), 200
-	else:
-		return json.dumps({}), 405
-
-@app.route('/api/v1/acts/count', methods = ['GET', 'DELETE', 'POST', 'PUT'])
-def count():
-	incrementRequests()
-	
-@app.route('/api/v1/_health', methods = ['GET'])
-def health():
-	return '', 500
-
-@app.route('/api/v1/_crash', methods = ['POST'])
-def crash():
-	return '', 200
-
-
-
-@app.route('/api/v1/', methods = ['GET', 'DELETE', 'POST', 'PUT'])
-def balance():
-    if 
-'''
-'''
-def healthCheck():
-    res = requests.get(localhost + healthyContainers[0] + '/api/v1/_health')
-'''
-
-'''
-def scale():
-    if countRequests
-'''
+		jsonPart = request.get_json()
+		var = str(requests.delete(url = 'http://127.0.0.1:' + str(portLists[index]) + '/api/v1/' + remaining, json = jsonPart).json())
+	app.logger.warning(portLists[index])
+	index = (index + 1)%(len(portLists))
+	return var
 
 
 if __name__ == '__main__':
