@@ -19,7 +19,7 @@ db = client['selfie_db']
 
 db.actRequests.insert({'requests': 0})
 
-healthFlag = 0	# 0 for healthy 1 for unhealthy
+healthFlag = 0
 
 def checkUser(username):
 	res = requests.get(url = newIP + '/api/v1/users')
@@ -182,8 +182,17 @@ def countActs():
 	res = db.acts.count()
 	return res
 
+def incrementRequests():
+	db.actRequests.update( {} , {'$inc': {'requests': 1}})
+	return 1
+
+def resetRequests():
+	db.actRequests.update({} , {'requests': 0})
+	return 1
+
 @app.route('/api/v1/categories/<categoryname>/acts', methods = ["GET", "PUT", "POST", "DELETE"])
 def listallacts(categoryname):
+	incrementRequests()
 	if (request.args.get('start') is None and request.args.get('end') is None):
 		if request.method == "GET":
 			# app.logger.warning("6th API for: ", categoryname)
@@ -223,6 +232,7 @@ def listallacts(categoryname):
 
 @app.route('/api/v1/categories', methods = ['POST', 'GET', 'DELETE', 'PUT'])
 def listCat():
+	incrementRequests()
 	if request.method == 'GET':
 		catCount = getCat()
 		if len(catCount)>0:
@@ -246,6 +256,7 @@ def listCat():
 
 @app.route('/api/v1/categories/<category_name>', methods = ['POST', 'GET', 'DELETE', 'PUT'])
 def removeCategory(category_name):
+	incrementRequests()
 	if request.method == 'DELETE':
 		# app.logger.warning("Deleting: ", category_name)
 		if(delCat(category_name)==1):
@@ -260,6 +271,7 @@ def removeCategory(category_name):
 
 @app.route('/api/v1/categories/<categoryname>/acts/size', methods = ["POST", "PUT", "GET", "DELETE"])
 def listnumberofacts(categoryname):
+	incrementRequests()
 	if request.method == "GET":
 		# app.logger.warning(categoryname, " asked")
 		count = length(categoryname)
@@ -275,6 +287,7 @@ def listnumberofacts(categoryname):
 
 @app.route('/api/v1/acts', methods = ['POST', 'GET', 'DELETE', 'PUT'])
 def upload_ACT():
+	incrementRequests()
 	# app.logger.warning("Upload Act")
 	if request.method == 'POST':
 		# app.logger.warning("Method Used: POST")
@@ -297,6 +310,7 @@ def upload_ACT():
 		return json.dumps({}), 405
 @app.route('/api/v1/acts/<actId>', methods = ['POST', 'GET', 'DELETE', 'PUT'])
 def delete_ACT(actId):
+	incrementRequests()
 	# app.logger.warning("Delete Act")
 	actId = int(actId)
 	if request.method == 'DELETE':
@@ -313,6 +327,7 @@ def delete_ACT(actId):
 
 @app.route('/api/v1/acts/upvote',methods = ['POST', 'PUT', 'DELETE', 'GET'])
 def upvote():
+	incrementRequests()
 	# app.logger.warning("Upvote Act.")
 	if request.method == "POST":
 		upvoteID = request.get_json(force=True)
@@ -327,8 +342,22 @@ def upvote():
 		# app.logger.warning("Method Used: ", request.method)
 		return json.dumps({}), 405
 
+@app.route('/api/v1/_count', methods = ['GET', 'DELETE', 'POST', 'PUT'])
+def countAPI():
+	# To return the number of request made
+	#incrementRequests()
+	if request.method == 'GET':
+		res = db.actRequests.find_one({}, {'requests': 1})
+		return json.dumps([res]),  200
+	elif request.method == 'DELETE':
+		resetRequests()
+		return json.dumps({}), 200
+	else:
+		return json.dumps({}), 405
+
 @app.route('/api/v1/acts/count', methods = ['GET', 'DELETE', 'POST', 'PUT'])
 def count():
+	incrementRequests()
 	if request.method == "GET":
 		res = countActs()
 		return json.dumps([res]), 200
@@ -346,6 +375,7 @@ def health():
 def crash():
 	healthFlag = 1
 	return '', 200
+
 
 if __name__ == '__main__':
 	app.debug == True
