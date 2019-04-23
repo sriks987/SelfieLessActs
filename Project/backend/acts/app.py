@@ -192,6 +192,9 @@ def resetRequests():
 
 @app.route('/api/v1/categories/<categoryname>/acts', methods = ["GET", "PUT", "POST", "DELETE"])
 def listallacts(categoryname):
+        global healthFlag
+        if healthFlag == 1:
+            return '', 500
 	incrementRequests()
 	if (request.args.get('start') is None and request.args.get('end') is None):
 		if request.method == "GET":
@@ -232,6 +235,9 @@ def listallacts(categoryname):
 
 @app.route('/api/v1/categories', methods = ['POST', 'GET', 'DELETE', 'PUT'])
 def listCat():
+        global healthFlag
+        if healthFlag == 1:
+            return '', 500
 	incrementRequests()
 	if request.method == 'GET':
 		catCount = getCat()
@@ -256,6 +262,9 @@ def listCat():
 
 @app.route('/api/v1/categories/<category_name>', methods = ['POST', 'GET', 'DELETE', 'PUT'])
 def removeCategory(category_name):
+        global healthFlag
+        if healthFlag == 1:
+            return '', 500
 	incrementRequests()
 	if request.method == 'DELETE':
 		# app.logger.warning("Deleting: ", category_name)
@@ -271,6 +280,9 @@ def removeCategory(category_name):
 
 @app.route('/api/v1/categories/<categoryname>/acts/size', methods = ["POST", "PUT", "GET", "DELETE"])
 def listnumberofacts(categoryname):
+        global healthFlag
+        if healthFlag == 1:
+            return '', 500
 	incrementRequests()
 	if request.method == "GET":
 		# app.logger.warning(categoryname, " asked")
@@ -287,6 +299,9 @@ def listnumberofacts(categoryname):
 
 @app.route('/api/v1/acts', methods = ['POST', 'GET', 'DELETE', 'PUT'])
 def upload_ACT():
+        global healthFlag
+        if healthFlag == 1:
+            return '', 500
 	incrementRequests()
 	# app.logger.warning("Upload Act")
 	if request.method == 'POST':
@@ -310,6 +325,9 @@ def upload_ACT():
 		return json.dumps({}), 405
 @app.route('/api/v1/acts/<actId>', methods = ['POST', 'GET', 'DELETE', 'PUT'])
 def delete_ACT(actId):
+        global healthFlag
+        if healthFlag == 1:
+            return '', 500
 	incrementRequests()
 	# app.logger.warning("Delete Act")
 	actId = int(actId)
@@ -327,6 +345,9 @@ def delete_ACT(actId):
 
 @app.route('/api/v1/acts/upvote',methods = ['POST', 'PUT', 'DELETE', 'GET'])
 def upvote():
+        global healthFlag
+        if healthFlag == 1:
+            return '', 500
 	incrementRequests()
 	# app.logger.warning("Upvote Act.")
 	if request.method == "POST":
@@ -344,6 +365,9 @@ def upvote():
 
 @app.route('/api/v1/_count', methods = ['GET', 'DELETE', 'POST', 'PUT'])
 def countAPI():
+        global healthFlag
+        if healthFlag == 1:
+            return '', 500
 	# To return the number of request made
 	#incrementRequests()
 	if request.method == 'GET':
@@ -357,6 +381,9 @@ def countAPI():
 
 @app.route('/api/v1/acts/count', methods = ['GET', 'DELETE', 'POST', 'PUT'])
 def count():
+        global healthFlag
+        if healthFlag == 1:
+            return '', 500
 	incrementRequests()
 	if request.method == "GET":
 		res = countActs()
