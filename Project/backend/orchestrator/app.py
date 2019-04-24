@@ -17,6 +17,11 @@ app = Flask(__name__)
 portLists = [8000]
 index = 0
 
+#global thread creation
+#balance_thread = threading.Thread(target=balance)
+scaling_thread = threading.Thread(target=scaling)
+healthcheck_thread = threading.Thread(target=monitorHealth)
+
 
 @app.route("/api/v1/<path:remaining>", methods=["GET", "POST", "PUT", "DELETE"])
 def balance(remaining):
@@ -67,7 +72,20 @@ def monitorHealth():
 
 
 
+#threads = []
 
 if __name__ == '__main__':
-	app.debug == True
-	app.run(host='0.0.0.0', port=80, debug = True)
+	
+    #balance_thread.start()
+    scaling_thread.start()
+    healthcheck_thread.start()
+
+    #for t in threads:
+    #    t.join()
+    
+    #balance_thread.join()
+    scaling_thread.join()
+    healthcheck_thread.join()
+
+    app.debug == True
+    app.run(host='0.0.0.0', port=80, debug = True)
