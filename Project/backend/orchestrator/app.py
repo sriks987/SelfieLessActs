@@ -16,19 +16,25 @@ lock= Lock()
 healthlock = Lock()
 incCount = Lock()
 requestCount = 0
-
+startFlag = 0 
 
 @app.route("/api/v1/<path:remaining>", methods=["GET", "POST", "PUT", "DELETE"])
 def balance(remaining):
 	global index
 	global requestCount
+	global startFlag
 	app.logger.warning(remaining)
+
 	if request.method == 'GET':
 		var = requests.get(url="http://3.212.219.92:"+str(portList[index]) + "/api/v1/"+remaining)
 		r1 = var.json()
 		incCount.acquire()
 		requestCount = requestCount + 1
 		incCount.release()
+		startFlag += 1
+		if (startFlag == 1):
+			scaling_thread.start()
+
 	elif request.method == 'POST':
 		jsonPart = request.get_json()
 		var = requests.post(url = 'http://3.212.219.92:' + str(portList[index]) + '/api/v1/' + remaining, json = jsonPart)
@@ -36,6 +42,10 @@ def balance(remaining):
 		incCount.acquire()
 		requestCount = requestCount + 1
 		incCount.release()
+		startFlag += 1
+		if (startFlag == 1):
+			scaling_thread.start()
+
 	elif request.method == 'PUT':
 		jsonPart = request.get_json()
 		var = requests.put(url = 'http://3.212.219.92:' + str(portList[index]) + '/api/v1/' + remaining, json = jsonPart)
@@ -43,6 +53,10 @@ def balance(remaining):
 		incCount.acquire()
 		requestCount = requestCount + 1
 		incCount.release()
+		startFlag += 1
+		if (startFlag == 1):
+			scaling_thread.start()
+
 	elif request.method == 'DELETE':
 		jsonPart = request.get_json()
 		var = requests.delete(url = 'http://3.212.219.92:' + str(portList[index]) + '/api/v1/' + remaining, json = jsonPart)
@@ -50,6 +64,9 @@ def balance(remaining):
 		incCount.acquire()
 		requestCount = requestCount + 1
 		incCount.release()
+		startFlag += 1
+		if (startFlag == 1):
+			scaling_thread.start()
 
 	app.logger.warning(portList[index])
 	index = (index + 1)%(len(portList))
@@ -57,6 +74,7 @@ def balance(remaining):
 
 def scaling():
 	global requestCount
+	app.logger.warning(requestCount)
 	while requestCount==0:
 		  pass
 	while True:
@@ -110,5 +128,4 @@ initializeContainer()
 
 if __name__ == '__main__':
 	appnew.start()
-	scaling_thread.start()
 	logging.debug("Done")
