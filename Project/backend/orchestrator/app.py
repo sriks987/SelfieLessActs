@@ -95,8 +95,9 @@ def scaling():
 				for i in range(0, abs(diff)):
 					port = portList.pop()
 					os.system('docker rm $(docker ps -a | grep "'+str(port)+'->80/tcp" --force')
+		requestCount = 0
 		sleep(120)
-	requestCount = 0
+	
 
 scaling_thread = Thread(target=scaling)
 
