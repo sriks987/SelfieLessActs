@@ -14,7 +14,7 @@ from flask import Flask, request, Response, abort, render_template
 app = Flask(__name__)
 
 client = MongoClient("172.17.0.2", 27017)
-newIP = "http://172.17.0.3:8080"
+newIP = "http://3.213.68.52:80"
 db = client['selfie_db']
 
 db.actRequests.insert({'requests': 0})
@@ -45,24 +45,24 @@ def is_base64(string):
 		return 0
 
 def getCat():
-        cursor = db.categories.find()
-        res = {}
-        for ele in cursor:
-                res[ele['name']] = ele['count']
-        return res
+		cursor = db.categories.find()
+		res = {}
+		for ele in cursor:
+				res[ele['name']] = ele['count']
+		return res
 
 def insertCat(catName):
-        res = db.categories.find_one({'name': catName})
-        if res==None:
-                db.categories.insert({"name": catName, "count": 0})
-                return 1
-        return 0
+		res = db.categories.find_one({'name': catName})
+		if res==None:
+				db.categories.insert({"name": catName, "count": 0})
+				return 1
+		return 0
 def delCat(catName):
-        res = db.categories.find_one({'name': catName})
-        if res!=None:
-                db.categories.delete_one({'name': catName})
-                return 1
-        return 0
+		res = db.categories.find_one({'name': catName})
+		if res!=None:
+				db.categories.delete_one({'name': catName})
+				return 1
+		return 0
 
 def getAct(category):
 	res = db.acts.find( { 'categoryName': category}, {'_id':0, 'categoryName': 0 } ).count()
@@ -192,9 +192,9 @@ def resetRequests():
 
 @app.route('/api/v1/categories/<categoryname>/acts', methods = ["GET", "PUT", "POST", "DELETE"])
 def listallacts(categoryname):
-        global healthFlag
-        if healthFlag == 1:
-            return '', 500
+	global healthFlag
+	if healthFlag == 1:
+		return '', 500
 	incrementRequests()
 	if (request.args.get('start') is None and request.args.get('end') is None):
 		if request.method == "GET":
@@ -235,9 +235,9 @@ def listallacts(categoryname):
 
 @app.route('/api/v1/categories', methods = ['POST', 'GET', 'DELETE', 'PUT'])
 def listCat():
-        global healthFlag
-        if healthFlag == 1:
-            return '', 500
+	global healthFlag
+	if healthFlag == 1:
+		return '', 500
 	incrementRequests()
 	if request.method == 'GET':
 		catCount = getCat()
@@ -262,9 +262,9 @@ def listCat():
 
 @app.route('/api/v1/categories/<category_name>', methods = ['POST', 'GET', 'DELETE', 'PUT'])
 def removeCategory(category_name):
-        global healthFlag
-        if healthFlag == 1:
-            return '', 500
+	global healthFlag
+	if healthFlag == 1:
+		return '', 500
 	incrementRequests()
 	if request.method == 'DELETE':
 		# app.logger.warning("Deleting: ", category_name)
@@ -280,9 +280,9 @@ def removeCategory(category_name):
 
 @app.route('/api/v1/categories/<categoryname>/acts/size', methods = ["POST", "PUT", "GET", "DELETE"])
 def listnumberofacts(categoryname):
-        global healthFlag
-        if healthFlag == 1:
-            return '', 500
+	global healthFlag
+	if healthFlag == 1:
+		return '', 500
 	incrementRequests()
 	if request.method == "GET":
 		# app.logger.warning(categoryname, " asked")
@@ -299,9 +299,9 @@ def listnumberofacts(categoryname):
 
 @app.route('/api/v1/acts', methods = ['POST', 'GET', 'DELETE', 'PUT'])
 def upload_ACT():
-        global healthFlag
-        if healthFlag == 1:
-            return '', 500
+	global healthFlag
+	if healthFlag == 1:
+		return '', 500
 	incrementRequests()
 	# app.logger.warning("Upload Act")
 	if request.method == 'POST':
@@ -325,9 +325,9 @@ def upload_ACT():
 		return json.dumps({}), 405
 @app.route('/api/v1/acts/<actId>', methods = ['POST', 'GET', 'DELETE', 'PUT'])
 def delete_ACT(actId):
-        global healthFlag
-        if healthFlag == 1:
-            return '', 500
+	global healthFlag
+	if healthFlag == 1:
+		return '', 500
 	incrementRequests()
 	# app.logger.warning("Delete Act")
 	actId = int(actId)
@@ -345,9 +345,9 @@ def delete_ACT(actId):
 
 @app.route('/api/v1/acts/upvote',methods = ['POST', 'PUT', 'DELETE', 'GET'])
 def upvote():
-        global healthFlag
-        if healthFlag == 1:
-            return '', 500
+	global healthFlag
+	if healthFlag == 1:
+		return '', 500
 	incrementRequests()
 	# app.logger.warning("Upvote Act.")
 	if request.method == "POST":
@@ -365,9 +365,9 @@ def upvote():
 
 @app.route('/api/v1/_count', methods = ['GET', 'DELETE', 'POST', 'PUT'])
 def countAPI():
-        global healthFlag
-        if healthFlag == 1:
-            return '', 500
+	global healthFlag
+	if healthFlag == 1:
+		return '', 500
 	# To return the number of request made
 	#incrementRequests()
 	if request.method == 'GET':
@@ -381,9 +381,9 @@ def countAPI():
 
 @app.route('/api/v1/acts/count', methods = ['GET', 'DELETE', 'POST', 'PUT'])
 def count():
-        global healthFlag
-        if healthFlag == 1:
-            return '', 500
+	global healthFlag
+	if healthFlag == 1:
+		return '', 500
 	incrementRequests()
 	if request.method == "GET":
 		res = countActs()
@@ -393,6 +393,7 @@ def count():
 
 @app.route('/api/v1/_health', methods = ['GET'])
 def health():
+	global healthFlag
 	if healthFlag == 0:
 		return '', 200
 	else:
@@ -400,6 +401,7 @@ def health():
 
 @app.route('/api/v1/_crash', methods = ['POST'])
 def crash():
+	global healthFlag
 	healthFlag = 1
 	return '', 200
 
