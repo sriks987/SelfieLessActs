@@ -86,10 +86,14 @@ initializeContainer()
 def monitorHealth():
 	sleep(5)
 	while True:
-		res = requests.get(url = 'http://3.212.219.92:8000/api/v1/_health')
-		if res.status_code == 500:
-			os.system('docker rm $(docker ps -a | grep "8000->80") --force')
-			os.system('docker run -d -p 8000:80 acts')
+		# app.logger.warning(len(portList))
+		for i in range(0, len(portList)):
+			res = requests.get(url='http://localhost:'+str(portList[i])+'/api/v1/_health')
+			if res.status_code == 500:
+				app.logger.warning("crashed container")
+				app.logger.warning(portList[i])
+				os.system('docker rm $(docker ps -a | grep "'+str(portList[i])+'->80") --force')
+				os.system('docker run -d -p'+str(portList[i])+':80 acts')
 		sleep(1)
 healthcheck_thread = Thread(target=monitorHealth)
 healthcheck_thread.start()
@@ -101,3 +105,7 @@ def loadBalancer():
 
 loadBalancerthread = Thread(target=loadBalancer)
 loadBalancerthread.start()
+# if __name__ == '__main__':
+# 	#appnew.start()
+	
+# 	logging.debug("Done")
