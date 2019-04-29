@@ -71,8 +71,9 @@ def scaling():
 				lock.acquire()
 				port = portList.pop()
 				lock.release()
-				os.system('docker rm $(docker ps -a | grep "'+str(port)+'->80") --force')
+				os.system('docker rm $(docker ps -a | grep "'+str(port)+'") --force')
 				app.logger.warning("removing")
+				app.logger.warning(port)
 		requestCount = 0
 scaling_thread = Thread(target=scaling)
 scaling_thread.start()
@@ -81,6 +82,8 @@ scaling_thread.start()
 def initializeContainer():
 	os.system("docker run -d -p 8000:80 acts")
 	portList.append(8000)
+
+
 initializeContainer()
 
 def monitorHealth():
@@ -105,7 +108,3 @@ def loadBalancer():
 
 loadBalancerthread = Thread(target=loadBalancer)
 loadBalancerthread.start()
-# if __name__ == '__main__':
-# 	#appnew.start()
-	
-# 	logging.debug("Done")
