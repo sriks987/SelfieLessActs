@@ -1,5 +1,4 @@
-from flask import Flask, flash, redirect, render_template, request, session, abort, url_for
-from flask import json
+from flask import Flask, request, Response, abort, render_template
 import os
 import requests
 import time
@@ -8,6 +7,7 @@ from threading import Thread, Lock
 import subprocess, signal
 import logging
 from time import sleep
+import json
 
 app = Flask(__name__)
 portList = []
@@ -15,9 +15,12 @@ index = 0
 lock = Lock()
 incCount = Lock()
 requestCount = 0
+with open('config.json') as json_file:
+	f = json_file.read()
+	data = json.loads(f)
 
 
-@app.route("/api/v1/<path:remaining>", methods=["GET", "POST", "PUT", "DELETE"])
+@app.route(data["baseUrl"]+"<path:remaining>", methods=["GET", "POST", "PUT", "DELETE"])
 def balance(remaining):
 	global index
 	global requestCount
@@ -25,7 +28,7 @@ def balance(remaining):
 	requestCount = requestCount + 1
 	incCount.release()
 	if request.method == 'GET':
-		var = requests.get(url="http://localhost:"+str(portList[index]) + "/api/v1/"+remaining)	
+		var = requests.get(url="http://localhost:"+str(portList[index]) + "/api/v1/"+remaining)
 		app.logger.warning(type(var.status_code))
 		if (var.status_code == 204):
 			r1 = {}
@@ -45,7 +48,7 @@ def balance(remaining):
 		r1 = var.json()
 	app.logger.warning(portList[index])
 	index = (index + 1)%(len(portList))
-	return json.jsonify(r1), var.status_code
+	return json.dumps(r1), var.status_code
 
 
 def scaling():
@@ -53,7 +56,7 @@ def scaling():
 	while requestCount==0:
 		pass
 	while True:
-		sleep(120)
+		sleep(data['timeBetweenScaling'])
 		var = requestCount
 		diff = var//20 - len(portList) + 1
 		app.logger.warning(diff)
@@ -65,7 +68,7 @@ def scaling():
 				os.system('docker run -d -p '+ str(port) + ':80 acts')
 				portList.append(port)
 				app.logger.warning("adding")
-				
+
 		else:
 			for i in range(0, abs(diff)):
 				lock.acquire()
@@ -80,16 +83,15 @@ scaling_thread.start()
 
 
 def initializeContainer():
-	os.system("docker run -d -p 8000:80 acts")
-	portList.append(8000)
-
+	os.system("docker run -d -p"+str(data['initialPort'])+":80 "+data['dockerFile'])
+	portList.append(data['initialPort'])
 
 initializeContainer()
 
 def monitorHealth():
 	sleep(5)
 	while True:
-		# app.logger.warning(len(portList))
+	# app.logger.warning(len(portList))
 		for i in range(0, len(portList)):
 			res = requests.get(url='http://localhost:'+str(portList[i])+'/api/v1/_health')
 			if res.status_code == 500:
@@ -97,7 +99,7 @@ def monitorHealth():
 				app.logger.warning(portList[i])
 				os.system('docker rm $(docker ps -a | grep "'+str(portList[i])+'->80") --force')
 				os.system('docker run -d -p'+str(portList[i])+':80 acts')
-		sleep(1)
+		sleep(data['healthCheck'])
 healthcheck_thread = Thread(target=monitorHealth)
 healthcheck_thread.start()
 

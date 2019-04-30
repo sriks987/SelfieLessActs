@@ -1,0 +1,7 @@
+{
+	"timeBetweenScaling" : 120,
+	"initialPort" : 8000,
+	"healthCheck" : 1,
+	"baseUrl" : "/api/v1/",
+	"dockerFile" : "acts"
+}
