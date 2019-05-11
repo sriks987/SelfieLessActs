@@ -27,8 +27,15 @@ def balance(remaining):
 	incCount.acquire()
 	requestCount = requestCount + 1
 	incCount.release()
+
+	lock.acquire()
+	if index>=len(portList):
+		index = 0
+	currPort = portList[index]
+	lock.release()
+
 	if request.method == 'GET':
-		var = requests.get(url="http://localhost:"+str(portList[index]) + "/api/v1/"+remaining)
+		var = requests.get(url="http://localhost:"+str(currPort) + "/api/v1/"+remaining)
 		app.logger.warning(type(var.status_code))
 		if (var.status_code == 204):
 			r1 = {}
@@ -36,18 +43,20 @@ def balance(remaining):
 			r1 = var.json()
 	elif request.method == 'POST':
 		jsonPart = request.get_json()
-		var = requests.post(url = 'http://localhost:' + str(portList[index]) + '/api/v1/' + remaining, json = jsonPart)
+		var = requests.post(url = 'http://localhost:' + str(currPort) + '/api/v1/' + remaining, json = jsonPart)
 		r1 = var.json()
 	elif request.method == 'PUT':
 		jsonPart = request.get_json()
-		var = requests.put(url = 'http://localhost:' + str(portList[index]) + '/api/v1/' + remaining, json = jsonPart)
+		var = requests.put(url = 'http://localhost:' + str(currPort) + '/api/v1/' + remaining, json = jsonPart)
 		r1 = var.json()
 	elif request.method == 'DELETE':
 		jsonPart = request.get_json()
-		var = requests.delete(url = 'http://localhost:' + str(portList[index]) + '/api/v1/' + remaining, json = jsonPart)
+		var = requests.delete(url = 'http://localhost:' + str(currPort) + '/api/v1/' + remaining, json = jsonPart)
 		r1 = var.json()
 	app.logger.warning(portList[index])
+	lock.acquire()
 	index = (index + 1)%(len(portList))
+	lock.release()
 	return json.dumps(r1), var.status_code
 
 
@@ -77,7 +86,9 @@ def scaling():
 				os.system('docker rm $(docker ps -a | grep "'+str(port)+'") --force')
 				app.logger.warning("removing")
 				app.logger.warning(port)
+		incCount.acquire()
 		requestCount = 0
+		incCount.release()
 scaling_thread = Thread(target=scaling)
 scaling_thread.start()
 
@@ -97,8 +108,17 @@ def monitorHealth():
 			if res.status_code == 500:
 				app.logger.warning("crashed container")
 				app.logger.warning(portList[i])
-				os.system('docker rm $(docker ps -a | grep "'+str(portList[i])+'->80") --force')
-				os.system('docker run -d -p'+str(portList[i])+':80 acts')
+				lock.acquire()
+				temp = portList[i]
+				del portList[i]
+				lock.release()
+				os.system('docker rm $(docker ps -a | grep "'+str(temp)+'->80") --force')
+				os.system('docker run -d -p'+str(temp)+':80 acts')
+				lock.acquire()
+				portList.append(temp)
+				portList.sort()
+				lock.release()
+				
 		sleep(data['healthCheck'])
 healthcheck_thread = Thread(target=monitorHealth)
 healthcheck_thread.start()
