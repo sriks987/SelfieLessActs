@@ -101,25 +101,37 @@ initializeContainer()
 
 def monitorHealth():
 	sleep(5)
-	while True:
-	# app.logger.warning(len(portList))
-		for i in range(0, len(portList)):
-			res = requests.get(url='http://localhost:'+str(portList[i])+'/api/v1/_health')
-			if res.status_code == 500:
-				app.logger.warning("crashed container")
-				app.logger.warning(portList[i])
+	try:
+		while True:
+			i = 0
+			lock.acquire()
+			numCon = len(portList)
+			lock.release()
+			while(i < numCon):
+				res = requests.get(url='http://localhost:'+str(portList[i])+'/api/v1/_health')
+				if res.status_code == 500:
+					app.logger.warning("crashed container")
+					app.logger.warning(portList[i])
+					lock.acquire()
+					temp = portList[i]
+					del portList[i]
+					lock.release()
+					os.system('docker rm $(docker ps -a | grep "'+str(temp)+'->80") --force')
+					os.system('docker run -d -p'+str(temp)+':80 acts')
+					lock.acquire()
+					portList.append(temp)
+					portList.sort()
+					lock.release()
 				lock.acquire()
-				temp = portList[i]
-				del portList[i]
+				numCon = len(portList)
 				lock.release()
-				os.system('docker rm $(docker ps -a | grep "'+str(temp)+'->80") --force')
-				os.system('docker run -d -p'+str(temp)+':80 acts')
-				lock.acquire()
-				portList.append(temp)
-				portList.sort()
-				lock.release()
-				
-		sleep(data['healthCheck'])
+				i = i + 1
+				if i>=numCon:
+					i = 0 		
+			sleep(data['healthCheck'])
+	except:
+		pass
+		
 healthcheck_thread = Thread(target=monitorHealth)
 healthcheck_thread.start()
 
